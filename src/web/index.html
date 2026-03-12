@@ -1,73 +1,106 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RAG Assistant</title>
+  <title>RAG Personalisly</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <div class="bg-orb orb-a"></div>
-  <div class="bg-orb orb-b"></div>
-
-  <main class="layout">
-    <aside class="panel side-panel">
+  <div class="app-shell">
+    <header class="topbar">
       <div class="brand">
-        <div class="brand-dot"></div>
+        <div class="brand-icon">
+          <span class="brand-book left-page"></span>
+          <span class="brand-book right-page"></span>
+          <span class="brand-book-spine"></span>
+          <span class="brand-node node-a"></span>
+          <span class="brand-node node-b"></span>
+          <span class="brand-node node-c"></span>
+          <span class="brand-node node-d"></span>
+          <span class="brand-node node-e"></span>
+          <span class="brand-node node-f"></span>
+        </div>
         <div>
-          <p class="brand-kicker">Local RAG</p>
-          <h1>Assistant metier</h1>
+          <h1>RAG Personalisly</h1>
+          <p>Personalized Document Intelligence</p>
         </div>
       </div>
 
-      <p class="side-text">
-        Pose des questions sur le corpus RH, IT, Finance, Qualite et Securite.
-      </p>
-
-      <div class="mini-card">
-        <p>Mode</p>
-        <strong>Ollama + Index local</strong>
-      </div>
-
-      <div class="mini-card">
-        <p>Endpoint</p>
-        <code>/ask</code>
-      </div>
-
-      <div class="mini-card">
-        <p>Status API</p>
-        <strong id="health-status">Verification...</strong>
-      </div>
-    </aside>
-
-    <section class="panel chat-panel">
-      <header class="chat-header">
-        <div>
-          <h2>Chatbot documentaire</h2>
-          <p>Reponses basees sur tes documents internes</p>
+      <div class="topbar-actions">
+        <div id="health-pill" class="status-pill">
+          <span class="status-dot"></span>
+          <span id="health-status">Checking</span>
         </div>
-        <label class="toggle">
-          <input id="show-sources" type="checkbox" />
-          <span>Afficher sources</span>
-        </label>
-      </header>
+        <button class="icon-button" type="button" aria-label="Notifications">
+          <span class="icon-bell"></span>
+          <span class="notif-dot"></span>
+        </button>
+        <button class="icon-button" type="button" aria-label="Settings">
+          <span class="icon-gear"></span>
+        </button>
+      </div>
+    </header>
 
-      <div id="messages" class="messages" aria-live="polite"></div>
+    <main class="workspace">
+      <aside class="sidebar">
+        <section class="sidebar-section">
+          <h2>Knowledge Base</h2>
+          <button class="upload-btn" type="button">
+            <span class="upload-icon"></span>
+            <span>Upload Documents</span>
+          </button>
 
-      <form id="chat-form" class="composer">
-        <textarea
-          id="question"
-          rows="3"
-          placeholder="Ex: Quels sont les KPI de fevrier 2025 ?"
-          required
-        ></textarea>
-        <div class="composer-row">
-          <p class="hint">Entree pour envoyer, Shift+Entree pour nouvelle ligne</p>
-          <button id="send-btn" type="submit">Envoyer</button>
+          <label class="search-box">
+            <span class="search-icon"></span>
+            <input id="doc-search" type="text" placeholder="Search documents..." />
+          </label>
+        </section>
+
+        <section id="doc-list" class="doc-list" aria-label="Document list"></section>
+      </aside>
+
+      <section class="chat-area">
+        <div class="chat-card">
+          <header class="chat-header">
+            <div class="assistant-badge">
+              <span class="assistant-spark"></span>
+            </div>
+            <div class="assistant-copy">
+              <h2>AI Assistant</h2>
+              <p>Ask questions about your documents</p>
+            </div>
+          </header>
+
+          <div id="messages" class="messages" aria-live="polite"></div>
+
+          <footer class="composer-wrap">
+            <form id="chat-form" class="composer">
+              <label class="composer-input">
+                <textarea
+                  id="question"
+                  rows="1"
+                  placeholder="Ask a question about your documents..."
+                  required
+                ></textarea>
+              </label>
+              <button id="send-btn" class="send-btn" type="submit" aria-label="Envoyer">
+                <span class="send-icon"></span>
+              </button>
+            </form>
+
+            <div class="composer-meta">
+              <label class="sources-toggle">
+                <input id="show-sources" type="checkbox" />
+                <span>Afficher sources</span>
+              </label>
+              <p>Powered by retrieval-augmented generation</p>
+            </div>
+          </footer>
         </div>
-      </form>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>
