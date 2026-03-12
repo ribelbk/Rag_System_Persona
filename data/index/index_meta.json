@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-02-27T01:34:40.775173+00:00",
+  "model_name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "embedding_dim": 384,
+  "num_chunks": 9,
+  "raw_dir": "C:\\Users\\bakho\\Documents\\RAG_Project\\data\\raw",
+  "chunk_size": 700,
+  "chunk_overlap": 80,
+  "min_chars": 80,
+  "files": [
+    "C:\\Users\\bakho\\Documents\\RAG_Project\\data\\raw\\IT\\runbook_infrastructure.pdf",
+    "C:\\Users\\bakho\\Documents\\RAG_Project\\data\\raw\\Qualite\\kpi_performance.xlsx",
+    "C:\\Users\\bakho\\Documents\\RAG_Project\\data\\raw\\RH\\employes_equipes.xlsx",
+    "C:\\Users\\bakho\\Documents\\RAG_Project\\data\\raw\\RH\\heures_travaillees.xlsx",
+    "C:\\Users\\bakho\\Documents\\RAG_Project\\data\\raw\\Securite\\politique_securite.pdf",
+    "C:\\Users\\bakho\\Documents\\RAG_Project\\data\\raw\\Securite\\procedures_incidents.pdf"
+  ]
+}

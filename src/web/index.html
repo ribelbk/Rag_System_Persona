@@ -1,0 +1,74 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG Assistant</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+
+  <main class="layout">
+    <aside class="panel side-panel">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <p class="brand-kicker">Local RAG</p>
+          <h1>Assistant metier</h1>
+        </div>
+      </div>
+
+      <p class="side-text">
+        Pose des questions sur le corpus RH, IT, Finance, Qualite et Securite.
+      </p>
+
+      <div class="mini-card">
+        <p>Mode</p>
+        <strong>Ollama + Index local</strong>
+      </div>
+
+      <div class="mini-card">
+        <p>Endpoint</p>
+        <code>/ask</code>
+      </div>
+
+      <div class="mini-card">
+        <p>Status API</p>
+        <strong id="health-status">Verification...</strong>
+      </div>
+    </aside>
+
+    <section class="panel chat-panel">
+      <header class="chat-header">
+        <div>
+          <h2>Chatbot documentaire</h2>
+          <p>Reponses basees sur tes documents internes</p>
+        </div>
+        <label class="toggle">
+          <input id="show-sources" type="checkbox" />
+          <span>Afficher sources</span>
+        </label>
+      </header>
+
+      <div id="messages" class="messages" aria-live="polite"></div>
+
+      <form id="chat-form" class="composer">
+        <textarea
+          id="question"
+          rows="3"
+          placeholder="Ex: Quels sont les KPI de fevrier 2025 ?"
+          required
+        ></textarea>
+        <div class="composer-row">
+          <p class="hint">Entree pour envoyer, Shift+Entree pour nouvelle ligne</p>
+          <button id="send-btn" type="submit">Envoyer</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

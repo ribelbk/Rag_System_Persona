@@ -1,0 +1,31 @@
+{
+  "RH": [
+    "https://oshr.nc.gov/documents/2022-compensation-and-benefits-report/open",
+    "https://oshr.nc.gov/documents/2023-settlement-report/open",
+    "https://www.dol.gov/sites/dolgov/files/WHD/legacy/files/FairLaborStandAct.pdf"
+  ],
+  "IT": [
+    "https://arxiv.org/pdf/2401.00002.pdf",
+    "https://arxiv.org/pdf/2401.00003.pdf",
+    "https://arxiv.org/pdf/2401.00004.pdf"
+  ],
+  "Finance": [
+    "https://www.imf.org/-/media/Files/Publications/WEO/2024/April/English/text.ashx",
+    "https://www.imf.org/-/media/Files/Publications/WEO/2023/October/English/text.ashx",
+    "https://www.bis.org/publ/arpdf/ar2024e.pdf",
+    "https://www.bis.org/publ/arpdf/ar2023e.pdf",
+    "https://www.bis.org/publ/arpdf/ar2022e.pdf",
+    "https://www.bis.org/publ/arpdf/ar2021e.pdf"
+  ],
+  "Qualite": [
+    "https://www.fda.gov/media/71023/download",
+    "https://www.fda.gov/media/71518/download",
+    "https://arxiv.org/pdf/2312.00001.pdf"
+  ],
+  "Securite": [
+    "https://www.cisa.gov/sites/default/files/2023-04/CISA_Zero_Trust_Maturity_Model_Version_2_508c.pdf",
+    "https://www.cisa.gov/sites/default/files/2024-05/zero_trust_maturity_model_v2_508%20%281%29_ES.pdf",
+    "https://arxiv.org/pdf/2401.00001.pdf"
+  ],
+  "data_gouv": []
+}

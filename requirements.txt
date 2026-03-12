@@ -1,0 +1,12 @@
+requests
+beautifulsoup4
+tqdm
+python-dotenv
+tenacity
+pypdf
+pandas
+openpyxl
+numpy
+sentence-transformers
+fastapi
+uvicorn

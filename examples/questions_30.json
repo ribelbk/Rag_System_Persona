@@ -1,0 +1,38 @@
+﻿{
+  "questions": [
+    {"id": 1, "category": "RH", "question": "Quels sont les noms des employes et leurs equipes ?"},
+    {"id": 2, "category": "RH", "question": "Qui est manager de l'equipe DevOps ?"},
+    {"id": 3, "category": "RH", "question": "Quels employes appartiennent a l'equipe Support ?"},
+    {"id": 4, "category": "RH", "question": "Combien d'employes sont actifs dans les documents RH ?"},
+    {"id": 5, "category": "RH", "question": "Quelles sont les absences en janvier 2025 par employe ?"},
+    {"id": 6, "category": "RH", "question": "Quels employes ont cumule le plus d'heures en fevrier 2025 ?"},
+
+    {"id": 7, "category": "IT", "question": "Quelle est la fenetre de maintenance indiquee dans le runbook infrastructure ?"},
+    {"id": 8, "category": "IT", "question": "Quelle est la procedure de deploiement standard ?"},
+    {"id": 9, "category": "IT", "question": "Quelles sont les etapes de la gestion des changements ?"},
+    {"id": 10, "category": "IT", "question": "Que contient la procedure d'onboarding IT ?"},
+    {"id": 11, "category": "IT", "question": "Quels types d'incidents apparaissent dans les tickets Q1 2025 ?"},
+    {"id": 12, "category": "IT", "question": "Quels objectifs majeurs figurent dans la roadmap IT 2025 ?"},
+
+    {"id": 13, "category": "Finance", "question": "Quel est le budget IT 2025 global ?"},
+    {"id": 14, "category": "Finance", "question": "Quels postes de depense sont presents dans le budget IT 2025 ?"},
+    {"id": 15, "category": "Finance", "question": "Quels sont les niveaux de service des contrats SLA 2024 ?"},
+    {"id": 16, "category": "Finance", "question": "Y a-t-il des penalites prevues dans les contrats SLA ?"},
+    {"id": 17, "category": "Finance", "question": "Quels indicateurs financiers apparaissent dans les rapports mensuels ?"},
+    {"id": 18, "category": "Finance", "question": "Quel est le cout total des services couverts par les contrats SLA ?"},
+
+    {"id": 19, "category": "Qualite", "question": "Quels sont les KPI de performance de fevrier 2025 ?"},
+    {"id": 20, "category": "Qualite", "question": "Quel est le taux de succes des deploiements par mois ?"},
+    {"id": 21, "category": "Qualite", "question": "Quel est le MTTR et son evolution sur les mois disponibles ?"},
+    {"id": 22, "category": "Qualite", "question": "Combien d'incidents critiques et mineurs sont reportes par mois ?"},
+    {"id": 23, "category": "Qualite", "question": "Quel est l'uptime mensuel et le meilleur mois observe ?"},
+    {"id": 24, "category": "Qualite", "question": "Quel niveau de satisfaction client est indique dans les KPI ?"},
+
+    {"id": 25, "category": "Securite", "question": "Quelle est la procedure d'escalade en cas d'incident critique ?"},
+    {"id": 26, "category": "Securite", "question": "Quels roles interviennent dans la gestion des incidents de securite ?"},
+    {"id": 27, "category": "Securite", "question": "Quels principes d'acces sont definis dans la politique de securite ?"},
+    {"id": 28, "category": "Securite", "question": "Le MFA est-il obligatoire et pour quels acces ?"},
+    {"id": 29, "category": "Securite", "question": "Quels objectifs sont mentionnes dans le projet Zero Trust ?"},
+    {"id": 30, "category": "Securite", "question": "Que prevoit le projet Disaster Recovery en cas d'indisponibilite majeure ?"}
+  ]
+}
