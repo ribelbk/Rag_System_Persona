@@ -98,6 +98,8 @@ Endpoints:
 
 - `GET http://127.0.0.1:8000/health`
 - `POST http://127.0.0.1:8000/ask`
+- `POST http://127.0.0.1:8000/api/workspace/ask`
+- `POST http://127.0.0.1:8000/api/workspace/ask/haystack`
 - `POST http://127.0.0.1:8000/ask/employees`
 
 Exemple PowerShell:
@@ -138,6 +140,22 @@ cloudflared tunnel --url http://127.0.0.1:8000
 
 Cloudflared affichera une URL publique `https://xxxx.trycloudflare.com` que tu peux partager.
 ```
+
+## 7) Deploiement Render
+
+Le depot contient maintenant un fichier `render.yaml`.
+
+Commande de demarrage:
+
+```bash
+python -m uvicorn src.api.app:app --host 0.0.0.0 --port $PORT
+```
+
+Attention:
+
+- Render ne lance pas Ollama localement.
+- Pour les endpoints qui generent une reponse avec le LLM, il faut fournir un endpoint LLM accessible depuis Render via `OLLAMA_URL`, ou adapter le backend vers un autre fournisseur.
+- Le retrieval Haystack/Qdrant peut etre deploye, mais la generation depend toujours du service LLM configure.
 
 Notes GPU:
 

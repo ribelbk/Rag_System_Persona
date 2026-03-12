@@ -13,10 +13,11 @@ from sentence_transformers import SentenceTransformer
 
 DEFAULT_EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 DEFAULT_OLLAMA_MODEL = "llama3.1:8b"
-DEFAULT_LLM_MODE = os.getenv("RAG_LLM_MODE", "extractive").strip().lower() or "extractive"
-DEFAULT_RETRIEVAL_MODE = os.getenv("RAG_RETRIEVAL_MODE", "lexical").strip().lower() or "lexical"
+DEFAULT_LLM_MODE = os.getenv("RAG_LLM_MODE", "ollama").strip().lower() or "ollama"
+DEFAULT_RETRIEVAL_MODE = os.getenv("RAG_RETRIEVAL_MODE", "semantic").strip().lower() or "semantic"
 DEFAULT_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434/api/generate").strip()
 DEFAULT_OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "").strip()
+NOT_FOUND_MESSAGE = "Information non trouvee dans les documents fournis."
 
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
@@ -273,8 +274,13 @@ def build_prompt(question: str, contexts: List[dict]) -> str:
 
     return (
         "Tu es un assistant RAG d'entreprise. Reponds uniquement a partir du contexte fourni.\n"
-        "Si l'information n'est pas dans le contexte, dis clairement: 'Information non trouvee dans les documents fournis.'\n"
-        "Reponse en francais, claire et concise, puis une section 'Sources' avec [SOURCE n].\n\n"
+        f"Si l'information n'est pas dans le contexte, dis clairement: '{NOT_FOUND_MESSAGE}'.\n"
+        "Reponds en francais de facon precise, complete et structuree.\n"
+        "Quand le contexte le permet, cite les valeurs exactes, noms, dates, statuts, equipes ou chiffres utiles.\n"
+        "Si plusieurs elements sont presents, organise la reponse en liste concise plutot qu'en phrase vague.\n"
+        "N'invente rien. N'extrapole rien. Ne complete pas avec des connaissances generales.\n"
+        "Chaque affirmation doit etre directement justifiable par au moins une source du contexte.\n"
+        "Termine par une section 'Sources' avec [SOURCE n].\n\n"
         f"Question:\n{question}\n\n"
         f"Contexte:\n{joined}\n"
     )
@@ -308,7 +314,7 @@ def query_ollama(
 
 def _extractive_answer(question: str, contexts: List[dict]) -> str:
     if not contexts:
-        return "Information non trouvee dans les documents fournis."
+        return NOT_FOUND_MESSAGE
 
     terms = set(_tokenize(question))
     ranked_sentences: List[tuple[int, float, str]] = []
@@ -332,7 +338,87 @@ def _extractive_answer(question: str, contexts: List[dict]) -> str:
         ranked_sentences.sort(key=lambda item: (item[0], item[1], len(item[2])), reverse=True)
         return " ".join(item[2] for item in ranked_sentences[:2])
 
-    return contexts[0].get("text", "")[:400] or "Information non trouvee dans les documents fournis."
+    return contexts[0].get("text", "")[:400] or NOT_FOUND_MESSAGE
+
+
+def _question_context_overlap(question: str, contexts: List[dict]) -> float:
+    question_terms = set(_tokenize(question))
+    if not question_terms or not contexts:
+        return 0.0
+
+    best_ratio = 0.0
+    for context in contexts:
+        context_terms = set(_tokenize(context.get("text", "")))
+        if not context_terms:
+            continue
+        overlap = len(question_terms & context_terms)
+        ratio = overlap / max(len(question_terms), 1)
+        if ratio > best_ratio:
+            best_ratio = ratio
+    return best_ratio
+
+
+def _filter_contexts(question: str, contexts: List[dict]) -> List[dict]:
+    if not contexts:
+        return []
+
+    filtered: List[dict] = []
+    question_terms = set(_tokenize(question))
+    for index, context in enumerate(contexts):
+        if index < 2:
+            filtered.append(context)
+            continue
+        context_terms = set(_tokenize(context.get("text", "")))
+        if question_terms & context_terms:
+            filtered.append(context)
+    return filtered or contexts[:2]
+
+
+def _split_answer_units(answer: str) -> List[str]:
+    units: List[str] = []
+    for line in answer.splitlines():
+        clean = re.sub(r"^\s*[-*•]\s*", "", line).strip()
+        if not clean or clean.lower().startswith("sources"):
+            continue
+        parts = re.split(r"(?<=[.!?])\s+", clean)
+        for part in parts:
+            item = part.strip()
+            if item:
+                units.append(item)
+    return units
+
+
+def answer_is_supported(answer: str, contexts: List[dict], min_unit_support: float = 0.3) -> bool:
+    normalized = answer.strip()
+    if not normalized or normalized == NOT_FOUND_MESSAGE:
+        return True
+    if not contexts:
+        return False
+
+    context_terms = [set(_tokenize(context.get("text", ""))) for context in contexts]
+    units = _split_answer_units(normalized)
+    checked_units = 0
+
+    for unit in units:
+        if unit.startswith("[SOURCE"):
+            continue
+        unit_terms = set(_tokenize(unit))
+        if len(unit_terms) < 2:
+            continue
+        checked_units += 1
+        best_support = 0.0
+        for terms in context_terms:
+            if not terms:
+                continue
+            support = len(unit_terms & terms) / max(len(unit_terms), 1)
+            if support > best_support:
+                best_support = support
+        if best_support < min_unit_support:
+            return False
+
+    if checked_units == 0:
+        return _question_context_overlap(normalized, contexts) >= 0.15
+    return True
 
 
 def generate_answer(
@@ -343,18 +429,27 @@ def generate_answer(
     max_tokens: int,
     prompt: Optional[str] = None,
     llm_mode: str = DEFAULT_LLM_MODE,
+    anti_hallucination: bool = True,
 ) -> str:
+    safe_contexts = _filter_contexts(question, contexts)
+
     mode = (llm_mode or DEFAULT_LLM_MODE).strip().lower()
     if mode == "ollama":
         if prompt is None:
-            prompt = build_prompt(question, contexts)
-        return query_ollama(
+            prompt = build_prompt(question, safe_contexts)
+        response = query_ollama(
             model=model,
             prompt=prompt,
             temperature=temperature,
             max_tokens=max_tokens,
         )
-    return _extractive_answer(question=question, contexts=contexts)
+        if anti_hallucination and not answer_is_supported(response, safe_contexts):
+            fallback = _extractive_answer(question=question, contexts=safe_contexts)
+            if answer_is_supported(fallback, safe_contexts, min_unit_support=0.2):
+                return fallback
+            return NOT_FOUND_MESSAGE
+        return response or NOT_FOUND_MESSAGE
+    return _extractive_answer(question=question, contexts=safe_contexts)
 
 
 def parse_args() -> argparse.Namespace:
@@ -363,9 +458,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--index-dir", type=Path, default=Path("data/index_business"), help="Index directory")
     parser.add_argument("--embed-model", default=DEFAULT_EMBED_MODEL, help="Embedding model name")
     parser.add_argument("--ollama-model", default=DEFAULT_OLLAMA_MODEL, help="Ollama model name")
-    parser.add_argument("--top-k", type=int, default=5, help="Number of retrieved chunks")
-    parser.add_argument("--temperature", type=float, default=0.1, help="Generation temperature")
-    parser.add_argument("--max-tokens", type=int, default=500, help="Maximum generated tokens")
+    parser.add_argument("--top-k", type=int, default=8, help="Number of retrieved chunks")
+    parser.add_argument("--temperature", type=float, default=0.0, help="Generation temperature")
+    parser.add_argument("--max-tokens", type=int, default=900, help="Maximum generated tokens")
     parser.add_argument("--show-context", action="store_true", help="Print retrieved chunks before answer")
     parser.add_argument(
         "--llm-mode",

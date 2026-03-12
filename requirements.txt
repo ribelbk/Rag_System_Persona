@@ -10,3 +10,6 @@ numpy
 sentence-transformers
 fastapi
 uvicorn
+python-multipart
+haystack-ai
+qdrant-haystack

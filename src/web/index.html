@@ -46,10 +46,25 @@
       <aside class="sidebar">
         <section class="sidebar-section">
           <h2>Knowledge Base</h2>
-          <button class="upload-btn" type="button">
+          <button id="upload-btn" class="upload-btn" type="button">
             <span class="upload-icon"></span>
             <span>Upload Documents</span>
           </button>
+          <input id="file-input" type="file" hidden multiple accept=".pdf,.docx,.txt,.md,.xlsx,.xlsm" />
+
+          <div class="upload-tools">
+            <label class="category-select">
+              <span>Type</span>
+              <select id="doc-category">
+                <option value="cours">Cours</option>
+                <option value="projet">Projet</option>
+                <option value="revision">Révision</option>
+                <option value="memoire">Mémoire</option>
+                <option value="stage">Stage</option>
+              </select>
+            </label>
+            <p id="upload-feedback" class="upload-feedback">Upload direct dans ton espace personnel RAG.</p>
+          </div>
 
           <label class="search-box">
             <span class="search-icon"></span>
@@ -68,7 +83,12 @@
             </div>
             <div class="assistant-copy">
               <h2>AI Assistant</h2>
-              <p>Ask questions about your documents</p>
+              <p>Travaille sur tes cours, révisions et projets personnels</p>
+            </div>
+            <div class="study-actions">
+              <button id="summary-btn" class="study-btn" type="button">Résumé</button>
+              <button id="flashcards-btn" class="study-btn" type="button">Fiches</button>
+              <button id="quiz-btn" class="study-btn" type="button">Quiz</button>
             </div>
           </header>
 
@@ -83,6 +103,13 @@
                   placeholder="Ask a question about your documents..."
                   required
                 ></textarea>
+              </label>
+              <label class="engine-select" for="engine-mode" title="Choisir le moteur RAG">
+                <span>API</span>
+                <select id="engine-mode">
+                  <option value="haystack" selected>Haystack API</option>
+                  <option value="default" disabled>My API - Coming soon</option>
+                </select>
               </label>
               <button id="send-btn" class="send-btn" type="submit" aria-label="Envoyer">
                 <span class="send-icon"></span>

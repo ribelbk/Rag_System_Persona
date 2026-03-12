@@ -7,3 +7,8 @@ __pycache__/
 .mypy_cache/
 .DS_Store
 Thumbs.db
+.haystack_home/
+data/qdrant_workspace/
+data/user_workspace/
+data/raw/**/~$*
+tmp_test_note.txt

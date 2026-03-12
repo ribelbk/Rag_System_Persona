@@ -383,6 +383,36 @@ body {
   padding: 0 14px;
 }
 
+.upload-tools {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.category-select {
+  display: grid;
+  gap: 6px;
+  color: #89a2d0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.category-select select {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(83, 106, 150, 0.35);
+  background: rgba(7, 18, 41, 0.88);
+  color: var(--text);
+  padding: 0 12px;
+}
+
+.upload-feedback {
+  margin: 0;
+  color: #6e88b5;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .search-box input {
   width: 100%;
   border: none;
@@ -431,6 +461,11 @@ body {
   grid-template-columns: 52px 1fr 26px;
   gap: 14px;
   margin-bottom: 16px;
+}
+
+.doc-card.selected {
+  border-color: rgba(17, 201, 255, 0.52);
+  box-shadow: inset 0 0 0 1px rgba(17, 201, 255, 0.18), 0 0 0 1px rgba(17, 201, 255, 0.08);
 }
 
 .doc-icon {
@@ -535,6 +570,34 @@ body {
   font-size: 13px;
 }
 
+.doc-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #85cbff;
+  background: rgba(16, 112, 255, 0.08);
+  border: 1px solid rgba(16, 112, 255, 0.18);
+  font-size: 12px;
+}
+
+.select-indicator {
+  color: #0fd3ff;
+  font-size: 28px;
+  line-height: 1;
+  text-align: center;
+}
+
+.empty-state {
+  padding: 18px;
+  border: 1px dashed rgba(96, 118, 160, 0.35);
+  border-radius: 16px;
+  color: #7e93bb;
+  font-size: 14px;
+  background: rgba(8, 19, 42, 0.5);
+}
+
 .trash-btn {
   width: 22px;
   height: 22px;
@@ -588,6 +651,31 @@ body {
   border-top: 1px solid rgba(65, 90, 139, 0.16);
   border-bottom: 1px solid var(--line);
   background: rgba(5, 15, 33, 0.72);
+}
+
+.study-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.study-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(83, 126, 206, 0.3);
+  background: rgba(12, 28, 55, 0.86);
+  color: #d8e7ff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.study-btn:hover {
+  border-color: rgba(17, 201, 255, 0.4);
+  color: #98e3ff;
 }
 
 .assistant-badge {
@@ -767,8 +855,21 @@ body {
 }
 
 .bubble p + p,
-.bubble li + li {
+.bubble li + li,
+.bubble .study-card + .study-card {
   margin-top: 0.35rem;
+}
+
+.bubble ul {
+  margin-top: 0.8rem;
+}
+
+.study-card {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(13, 27, 48, 0.72);
+  border: 1px solid rgba(80, 105, 151, 0.28);
 }
 
 .sources-panel {
@@ -877,8 +978,9 @@ body {
 .composer {
   min-height: 76px;
   display: grid;
-  grid-template-columns: 1fr 58px;
+  grid-template-columns: minmax(0, 1fr) 150px 58px;
   gap: 14px;
+  align-items: end;
 }
 
 .composer-input {
@@ -905,6 +1007,57 @@ body {
 
 .composer textarea::placeholder {
   color: #7183a6;
+}
+
+.engine-select {
+  align-self: end;
+  min-width: 150px;
+  height: 58px;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid rgba(83, 106, 150, 0.45);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(30, 43, 69, 0.98), rgba(22, 33, 55, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #a8c0e8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  overflow: hidden;
+}
+
+.engine-select span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(16, 207, 255, 0.12);
+  color: #d8f6ff;
+  font-weight: 700;
+}
+
+.engine-select select {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, #9cc5ff 50%) right 12px center / 8px 8px no-repeat,
+    linear-gradient(135deg, #9cc5ff 50%, transparent 50%) right 6px center / 8px 8px no-repeat,
+    transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 28px 0 0;
+  outline: none;
+  cursor: pointer;
 }
 
 .send-btn {
@@ -967,6 +1120,22 @@ body {
 
 .sources-toggle input {
   accent-color: #10cfff;
+}
+
+@media (max-width: 900px) {
+  .composer {
+    grid-template-columns: 1fr;
+  }
+
+  .engine-select {
+    min-width: 100%;
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .send-btn {
+    justify-self: end;
+  }
 }
 
 @media (max-width: 1180px) {

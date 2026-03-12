@@ -7,69 +7,82 @@ const healthStatus = document.getElementById("health-status");
 const healthPill = document.getElementById("health-pill");
 const docList = document.getElementById("doc-list");
 const docSearch = document.getElementById("doc-search");
+const uploadBtn = document.getElementById("upload-btn");
+const fileInput = document.getElementById("file-input");
+const docCategory = document.getElementById("doc-category");
+const uploadFeedback = document.getElementById("upload-feedback");
+const summaryBtn = document.getElementById("summary-btn");
+const flashcardsBtn = document.getElementById("flashcards-btn");
+const quizBtn = document.getElementById("quiz-btn");
+const engineMode = document.getElementById("engine-mode");
 
-const documents = [
-  {
-    name: "Product Documentation.pdf",
-    size: "2.4 MB",
-    time: "2 hours ago",
-    status: "ready",
-    chunks: 156,
-  },
-  {
-    name: "Technical Specifications.docx",
-    size: "1.8 MB",
-    time: "5 hours ago",
-    status: "ready",
-    chunks: 89,
-  },
-  {
-    name: "User Manual.pdf",
-    size: "3.2 MB",
-    time: "1 day ago",
-    status: "ready",
-    chunks: 201,
-  },
-  {
-    name: "API Reference.md",
-    size: "512 KB",
-    time: "2 days ago",
-    status: "processing",
-    chunks: 45,
-  },
-];
+let documents = [];
+let selectedDocIds = [];
 
 function statusLabel(status) {
-  return status === "ready" ? "Ready" : "Processing";
+  if (status === "ready") return "Ready";
+  if (status === "empty") return "Empty";
+  return "Processing";
+}
+
+function relativeTime(isoDate) {
+  if (!isoDate) return "unknown";
+  const then = new Date(isoDate);
+  const diffMs = Date.now() - then.getTime();
+  const diffHours = Math.floor(diffMs / 3600000);
+  if (diffHours < 1) return "just now";
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
 function renderDocuments(filter = "") {
   const query = filter.trim().toLowerCase();
-  const visible = documents.filter((doc) => doc.name.toLowerCase().includes(query));
-  docList.innerHTML = "";
+  const visible = documents.filter((doc) => {
+    const haystack = `${doc.name} ${doc.category}`.toLowerCase();
+    return haystack.includes(query);
+  });
 
+  docList.innerHTML = "";
   visible.forEach((doc) => {
+    const isSelected = selectedDocIds.includes(doc.doc_id);
     const card = document.createElement("article");
-    card.className = "doc-card";
+    card.className = `doc-card ${isSelected ? "selected" : ""}`;
+    card.dataset.docId = doc.doc_id;
     card.innerHTML = `
       <div class="doc-icon" aria-hidden="true"></div>
       <div class="doc-main">
         <h3>${doc.name}</h3>
-        <div class="doc-meta">${doc.size} &nbsp;&bull;&nbsp; ${doc.time}</div>
+        <div class="doc-meta">${doc.size_label || "0 KB"} &nbsp;&bull;&nbsp; ${relativeTime(doc.uploaded_at)}</div>
         <div class="doc-status-row">
           <span class="status-badge ${doc.status}">${statusLabel(doc.status)}</span>
           <span class="chunk-meta">${doc.chunks} chunks</span>
+          <span class="doc-tag">${doc.category}</span>
         </div>
       </div>
-      <div class="trash-btn" aria-hidden="true"></div>
+      <div class="select-indicator">${isSelected ? "•" : ""}</div>
     `;
+    card.addEventListener("click", () => toggleDocumentSelection(doc.doc_id));
     docList.appendChild(card);
   });
+
+  if (visible.length === 0) {
+    docList.innerHTML = `<div class="empty-state">Aucun document trouvé. Upload tes fichiers de cours ou de projet.</div>`;
+  }
+}
+
+function toggleDocumentSelection(docId) {
+  if (selectedDocIds.includes(docId)) {
+    selectedDocIds = selectedDocIds.filter((id) => id !== docId);
+  } else {
+    selectedDocIds = [docId];
+  }
+  renderDocuments(docSearch.value);
 }
 
 function formatTime() {
-  return new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
+  return new Date().toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
     minute: "2-digit",
   });
 }
@@ -79,6 +92,13 @@ function scorePercent(score) {
     return 0;
   }
   return Math.max(8, Math.min(100, Math.round(score * 95)));
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 function buildSourcesMarkup(sources) {
@@ -97,9 +117,9 @@ function buildSourcesMarkup(sources) {
       return `
         <div class="source-item">
           <div class="source-main">
-            <span class="source-chip">${label}</span>
-            <span class="source-rank">Rank ${source.rank}${source.chunk_id ? ` • ${source.chunk_id}` : ""}</span>
-            <div class="source-preview">${preview}</div>
+            <span class="source-chip">${escapeHtml(label)}</span>
+            <span class="source-rank">Rank ${source.rank}${source.chunk_id ? ` • ${escapeHtml(source.chunk_id)}` : ""}</span>
+            <div class="source-preview">${escapeHtml(preview)}</div>
           </div>
           <div class="source-score">
             ${score}%
@@ -133,32 +153,39 @@ function addMessage({ text, role, sources = null, time = formatTime() }) {
 
   messages.appendChild(row);
   messages.scrollTop = messages.scrollHeight;
-  return row;
 }
 
-function addTyping() {
+function addTyping(text = "Analyse en cours...") {
   const node = document.createElement("div");
   node.className = "typing";
-  node.textContent = "Assistant is analyzing your knowledge base...";
+  node.textContent = text;
   messages.appendChild(node);
   messages.scrollTop = messages.scrollHeight;
   return node;
 }
 
-async function askQuestion(question) {
-  const payload = {
-    question,
-    index_dir: "data/index_business",
-    ollama_model: "llama3.1:8b",
-    top_k: 5,
-    include_sources: showSources.checked,
-    strict_answer: true,
-  };
+async function fetchLibrary() {
+  const response = await fetch("/api/library");
+  if (!response.ok) {
+    throw new Error("Impossible de charger la bibliothèque.");
+  }
+  const data = await response.json();
+  documents = data.documents || [];
+  renderDocuments(docSearch.value);
+}
 
-  const response = await fetch("/ask", {
+async function askWorkspace(question) {
+  const endpoint = "/api/workspace/ask/haystack";
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      question,
+      top_k: 8,
+      include_sources: showSources.checked,
+      doc_ids: selectedDocIds,
+      anti_hallucination: true,
+    }),
   });
 
   if (!response.ok) {
@@ -167,6 +194,71 @@ async function askQuestion(question) {
   }
 
   return response.json();
+}
+
+async function callStudyEndpoint(endpoint) {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ doc_ids: selectedDocIds }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Erreur API (${response.status}) ${err}`);
+  }
+
+  return response.json();
+}
+
+function renderSummary(data) {
+  const bullets = (data.bullets || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  return `
+    <strong>${escapeHtml(data.title)}</strong>
+
+    ${escapeHtml(data.paragraph || "")}
+
+    <ul>${bullets}</ul>
+  `;
+}
+
+function renderFlashcards(data) {
+  const cards = (data.flashcards || []).map((card, index) => {
+    return `<div class="study-card"><strong>Fiche ${index + 1}</strong><br>${escapeHtml(card.question)}<br><br>${escapeHtml(card.answer)}</div>`;
+  });
+  return cards.join("");
+}
+
+function renderQuiz(data) {
+  const blocks = (data.quiz || []).map((item) => {
+    const options = item.options.map((option, index) => `<li>${String.fromCharCode(65 + index)}. ${escapeHtml(option)}</li>`).join("");
+    return `<div class="study-card"><strong>Question ${item.id}</strong><br>${escapeHtml(item.question)}<ul>${options}</ul><em>Bonne réponse: ${escapeHtml(item.answer)}</em></div>`;
+  });
+  return blocks.join("");
+}
+
+async function uploadFiles(files) {
+  if (!files.length) return;
+  uploadFeedback.textContent = "Upload en cours...";
+
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("category", docCategory.value);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`${file.name}: ${err}`);
+    }
+  }
+
+  uploadFeedback.textContent = "Documents ajoutés à ton espace personnel.";
+  await fetchLibrary();
 }
 
 async function checkHealth() {
@@ -193,27 +285,75 @@ form.addEventListener("submit", async (event) => {
   const question = input.value.trim();
   if (!question) return;
 
-  addMessage({ text: question, role: "user" });
+  addMessage({ text: escapeHtml(question), role: "user" });
   input.value = "";
   autoResizeTextarea();
   sendBtn.disabled = true;
 
-  const typing = addTyping();
+  const typing = addTyping("Recherche via Haystack...");
 
   try {
-    const data = await askQuestion(question);
+    const data = await askWorkspace(question);
     typing.remove();
     addMessage({
-      text: data.answer || "No answer returned.",
+      text: escapeHtml(data.answer || "Aucune réponse."),
       role: "bot",
       sources: data.sources || null,
     });
   } catch (error) {
     typing.remove();
-    addMessage({ text: `Erreur: ${error.message}`, role: "bot" });
+    addMessage({ text: `Erreur: ${escapeHtml(error.message)}`, role: "bot" });
   } finally {
     sendBtn.disabled = false;
     input.focus();
+  }
+});
+
+uploadBtn.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", async (event) => {
+  try {
+    await uploadFiles([...event.target.files]);
+  } catch (error) {
+    uploadFeedback.textContent = `Erreur upload: ${error.message}`;
+  } finally {
+    fileInput.value = "";
+  }
+});
+
+summaryBtn.addEventListener("click", async () => {
+  const typing = addTyping("Génération du résumé...");
+  try {
+    const data = await callStudyEndpoint("/api/study/summary");
+    typing.remove();
+    addMessage({ text: renderSummary(data), role: "bot", time: "Maintenant" });
+  } catch (error) {
+    typing.remove();
+    addMessage({ text: `Erreur: ${escapeHtml(error.message)}`, role: "bot" });
+  }
+});
+
+flashcardsBtn.addEventListener("click", async () => {
+  const typing = addTyping("Création des fiches de révision...");
+  try {
+    const data = await callStudyEndpoint("/api/study/flashcards");
+    typing.remove();
+    addMessage({ text: renderFlashcards(data), role: "bot", time: "Maintenant" });
+  } catch (error) {
+    typing.remove();
+    addMessage({ text: `Erreur: ${escapeHtml(error.message)}`, role: "bot" });
+  }
+});
+
+quizBtn.addEventListener("click", async () => {
+  const typing = addTyping("Construction du quiz...");
+  try {
+    const data = await callStudyEndpoint("/api/study/quiz");
+    typing.remove();
+    addMessage({ text: renderQuiz(data), role: "bot", time: "Maintenant" });
+  } catch (error) {
+    typing.remove();
+    addMessage({ text: `Erreur: ${escapeHtml(error.message)}`, role: "bot" });
   }
 });
 
@@ -230,11 +370,17 @@ docSearch.addEventListener("input", (event) => {
   renderDocuments(event.target.value);
 });
 
-renderDocuments();
-checkHealth();
-autoResizeTextarea();
-addMessage({
-  text: "Bonjour. Pose une question sur tes documents et je reponds a partir de la base RAG locale.",
-  role: "bot",
-  time: "Now",
+async function init() {
+  await fetchLibrary();
+  await checkHealth();
+  autoResizeTextarea();
+  addMessage({
+    text: "Bonjour. Upload tes documents de cours, de projet ou de révision directement ici. Ensuite tu peux poser des questions, générer un résumé, créer des fiches ou lancer un quiz.",
+    role: "bot",
+    time: "Now",
+  });
+}
+
+init().catch((error) => {
+  addMessage({ text: `Erreur initialisation: ${escapeHtml(error.message)}`, role: "bot" });
 });

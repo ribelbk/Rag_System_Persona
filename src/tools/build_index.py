@@ -62,7 +62,6 @@ def extract_excel_parts(path: Path) -> List[Tuple[str, str]]:
             continue
 
         df = df.fillna("")
-        lines: List[str] = []
         headers = [str(c).strip() for c in df.columns]
 
         for i, row in enumerate(df.itertuples(index=False), start=1):
@@ -72,10 +71,8 @@ def extract_excel_parts(path: Path) -> List[Tuple[str, str]]:
                 if val_s:
                     cells.append(f"{col_name}: {val_s}")
             if cells:
-                lines.append(f"row {i} | " + " | ".join(cells))
-
-        if lines:
-            parts.append((f"sheet_{sheet_name}", "\n".join(lines)))
+                row_text = f"Sheet {sheet_name} | row {i} | " + " | ".join(cells)
+                parts.append((f"sheet_{sheet_name}_row_{i}", row_text))
 
     return parts
 
