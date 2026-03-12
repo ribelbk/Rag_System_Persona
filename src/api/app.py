@@ -9,9 +9,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.tools.answer_rag import (
+    DEFAULT_LLM_MODE,
     DEFAULT_EMBED_MODEL,
     DEFAULT_OLLAMA_MODEL,
-    query_ollama,
+    generate_answer,
     retrieve,
 )
 
@@ -34,6 +35,7 @@ class AskRequest(BaseModel):
     max_tokens: int = Field(default=500, ge=32, le=4096, description="Max generated tokens")
     include_sources: bool = Field(default=False, description="Include sources in API response")
     strict_answer: bool = Field(default=True, description="Force concise answer without source section")
+    llm_mode: str = Field(default=DEFAULT_LLM_MODE, description="extractive or ollama")
 
 
 class SourceItem(BaseModel):
@@ -143,16 +145,19 @@ def ask(req: AskRequest) -> AskResponse:
     prompt = _build_prompt(question, contexts, strict_answer=req.strict_answer)
 
     try:
-        answer = query_ollama(
+        answer = generate_answer(
+            question=question,
+            contexts=contexts,
             model=req.ollama_model,
-            prompt=prompt,
             temperature=req.temperature,
             max_tokens=req.max_tokens,
+            prompt=prompt,
+            llm_mode=req.llm_mode,
         )
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=503,
-            detail="ollama_unreachable: verify Ollama is running on http://127.0.0.1:11434",
+            detail="llm_unreachable: verify your configured LLM endpoint is reachable",
         ) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"generation_error: {type(exc).__name__}: {exc}") from exc
